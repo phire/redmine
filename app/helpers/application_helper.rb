@@ -580,7 +580,7 @@ module ApplicationHelper
 
     parse_sections(text, project, obj, attr, only_path, options)
     text = parse_non_pre_blocks(text, obj, macros) do |text|
-      [:parse_inline_attachments, :parse_wiki_links, :parse_redmine_links].each do |method_name|
+      [:parse_inline_attachments, :parse_wiki_links, :parse_redmine_links, :parse_gcode_links].each do |method_name|
         send method_name, text, project, obj, attr, only_path, options
       end
     end
@@ -871,6 +871,25 @@ module ApplicationHelper
           end
         end
         (leading + (link || "#{project_prefix}#{prefix}#{repo_prefix}#{sep}#{identifier}#{comment_suffix}"))
+      end
+    end
+  end
+
+  # Parses old Google Code links.
+  #
+  # Examples:
+  #   Issues:
+  #     issue 52 -> Link to issue #52
+  def parse_gcode_links(text, default_project, obj, attr, only_path, options)
+    text.gsub!(/\bissue (\d+)\b/i) do |m|
+      id = $1.to_i
+      if issue = Issue.visible.find_by_id(id)
+        link_to("issue #{id}",
+                issue_url(issue, :only_path => only_path),
+                :class => issue.css_classes,
+                :title => "#{issue.subject.truncate(100)} (#{issue.status.name})")
+      else
+        $&
       end
     end
   end
