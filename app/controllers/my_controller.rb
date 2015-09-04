@@ -58,6 +58,7 @@ class MyController < ApplicationController
     if request.post?
       @user.safe_attributes = params[:user] if params[:user]
       @user.pref.attributes = params[:pref] if params[:pref]
+      @user.login = params[:user][:login] if params[:user][:login]
       if @user.save
         @user.pref.save
         set_language_if_valid @user.language
